@@ -7,3 +7,5 @@ Key features:<br>
 3. Paid subscription through ROBOKASSA;<br>
 4. Tariffs customizations;<br>
 5. Mail Subscription through MailChimp;<br>
+6. Bonus system (1-level referral);<br>
+7. Discount coupons;
