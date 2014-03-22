@@ -1,1 +1,13 @@
-/nbproject/private/
+.idea
+.gitignore
+protected/runtime/*
+img/*
+image/*
+images/*
+protected/config/*
+protected/extensions/wysiwyg/*
+protected/extensions/*
+nbpriject/
+nbpriject/*
+assets/
+runtime/*

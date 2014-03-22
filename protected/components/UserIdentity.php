@@ -7,27 +7,45 @@
  */
 class UserIdentity extends CUserIdentity
 {
-	/**
-	 * Authenticates a user.
-	 * The example implementation makes sure if the username and password
-	 * are both 'demo'.
-	 * In practical applications, this should be changed to authenticate
-	 * against some persistent user identity storage (e.g. database).
-	 * @return boolean whether authentication succeeds.
-	 */
-	public function authenticate()
-	{
-		$users=array(
-			// username => password
-			'demo'=>'demo',
-			'admin'=>'admin',
-		);
-		if(!isset($users[$this->username]))
-			$this->errorCode=self::ERROR_USERNAME_INVALID;
-		elseif($users[$this->username]!==$this->password)
-			$this->errorCode=self::ERROR_PASSWORD_INVALID;
-		else
-			$this->errorCode=self::ERROR_NONE;
-		return !$this->errorCode;
-	}
+        const ERROR_BANNED = 4;
+        const ERROR_ACTIVE = 3;
+        private $_id;
+        public function authenticate()
+        {
+            $username = strtolower($this->username);
+            $user = User::model()->find('LOWER(email)=?', array($username));
+
+            if ($user === null)
+            {
+                $this->errorCode = self::ERROR_USERNAME_INVALID;
+            }
+            else
+            {
+                if ($user->banned === '1')
+                {
+                    $this->errorCode = self::ERROR_BANNED;
+                }
+                elseif($user->active === '0')
+                {
+                    $this->errorCode = self::ERROR_ACTIVE;
+                }
+                else
+                {
+                    if (!$user->validatePassword($this->password))
+                    {
+                        $this->errorCode = self::ERROR_PASSWORD_INVALID;
+                    }
+                    else
+                    {
+                        $this->_id = $user->id;
+                        $this->errorCode = self::ERROR_NONE;
+                    }
+                }
+            }
+            return $this->errorCode;
+        }
+        public function getId()
+        {
+            return $this->_id;
+        }
 }
