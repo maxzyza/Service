@@ -7,5 +7,5 @@ images/*
 protected/config/*
 nbpriject/
 nbpriject/*
-assets/
+assets/*
 runtime/*
