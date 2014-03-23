@@ -5,8 +5,6 @@ img/*
 image/*
 images/*
 protected/config/*
-protected/extensions/wysiwyg/*
-protected/extensions/*
 nbpriject/
 nbpriject/*
 assets/
