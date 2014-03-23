@@ -1,24 +1,13 @@
 <?php
-
-// uncomment the following to define a path alias
-// Yii::setPathOfAlias('local','path/to/local-folder');
-
-// This is the main Web application configuration. Any writable
-// CWebApplication properties can be configured here.
-return array(
+$config = array(
 	'basePath'=>dirname(__FILE__).DIRECTORY_SEPARATOR.'..',
 	'name'=>'Base Service',
-
-	// preloading 'log' component
 	'preload'=>array('log','bootstrap'),
-
-	// autoloading model  and component classes
 	'import'=>array(
 		'application.models.*',
 		'application.components.*',
 	),
         'language'=>'ru',
-        //'theme'=>'bootstrap',
 	'modules'=>array(
 		'gii'=>array(
 			'class'=>'system.gii.GiiModule',
@@ -30,12 +19,21 @@ return array(
                 ),
 	),
 
-	// application components
 	'components'=>array(
 		'user'=>array(
-			// enable cookie-based authentication
-			'allowAutoLogin'=>true,
+                    'allowAutoLogin'=>true,
+                    'loginUrl'=>'/site/login'
 		),
+                'mail' => array(
+                    'class' => 'ext.yii-mail.YiiMail',
+                    'transportType' => 'smtp',
+                    'transportOptions' => array(
+                        'host' => 'smtp.yandex.ru',
+                        'username' => '',
+                        'password' => '',
+                    ),
+                    'logging' => true,
+                ),
 		'bootstrap'=>array(
                     'class'=>'ext.bootstrap.components.Bootstrap',
                 ),
@@ -51,13 +49,6 @@ return array(
 				'<controller:\w+>/<action:\w+>/<id:\d+>'=>'<controller>/<action>',
 				'<controller:\w+>/<action:\w+>'=>'<controller>/<action>',
                             ),
-		),
-		'db'=>array(
-			'connectionString' => 'mysql:host=localhost;dbname=service',
-			'emulatePrepare' => true,
-			'username' => 'root',
-			'password' => '',
-			'charset' => 'utf8',
 		),
 //		'errorHandler'=>array(
 //			// use 'site/error' action to display errors
@@ -79,11 +70,26 @@ return array(
 //			),
 //		),
 	),
-
-	// application-level parameters that can be accessed
 	// using Yii::app()->params['paramName']
 	'params'=>array(
-		// this is used in contact page
 		'adminEmail'=>'webmaster@example.com',
 	),
 );
+$path = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'author' . DIRECTORY_SEPARATOR;
+$dir = dir($path);
+while (($entry = $dir->read()) !== false) 
+{
+    if (is_file($path . $entry) && $entry[0] === '.' && $entry != '.gitignore') 
+    {
+        $YII_ENVIRONMENT = substr($entry, 1);
+        break;
+    }
+}
+unset($dir);
+
+if (isset($YII_ENVIRONMENT) && file_exists(__DIR__ . '/.' . $YII_ENVIRONMENT . '.php')) 
+{
+    $custom = include(__DIR__ . '/.' . $YII_ENVIRONMENT . '.php');
+    $config = CMap::mergeArray($config, $custom);
+}
+return $config;

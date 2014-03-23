@@ -30,7 +30,9 @@
 		<?php $this->widget('zii.widgets.CMenu',array(
 			'items'=>array(
 				array('label'=>'Home', 'url'=>array('/site/index')),
-//                                array('label'=>'Admin', 'url'=>array('admin/panel/admin')),
+                                array('label'=>'Registration', 'url'=>array('/site/register')),
+                                array('label'=>'Admin', 'url'=>array('/admin/panel/admin')),
+                                array('label'=>'Paid functional', 'url'=>array('/anything/index')),
 				array('label'=>'Login', 'url'=>array('/site/login'), 'visible'=>Yii::app()->user->isGuest),
 				array('label'=>'Logout ('.Yii::app()->user->name.')', 'url'=>array('/site/logout'), 'visible'=>!Yii::app()->user->isGuest)
 			),

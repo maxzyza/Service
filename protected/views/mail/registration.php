@@ -1,0 +1,2 @@
+<h2>Спасибо за регистрацию, <?php echo $name ?></h2>
+<p>Для активации аккаунта, перейдите по ссылке <?php echo Yii::app()->request->getBaseUrl(true) ?>/activate<?php echo Yii::app()->urlManager->urlSuffix ?>?code=<?php echo $code ?></p>

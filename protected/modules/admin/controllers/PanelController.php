@@ -12,10 +12,6 @@ class PanelController extends CController
             array('allow',
                 'roles'=>array('admin'),
                 ),
-            array('allow',
-                'actions'=>array('login'),
-                'users'=>array('?'),
-            ),
             array('deny',
                 'users'=>array('*'),
                 ),
@@ -23,6 +19,6 @@ class PanelController extends CController
     }
     public function actionAdmin()
     {
-        echo 'dafs';die;
+        $this->render('admin');
     }
 }

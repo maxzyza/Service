@@ -11,8 +11,7 @@ class SiteController extends CController
         if (isset($_REQUEST['User']))
         {
             $model->setAttributes($_REQUEST['User']);
-//            $user = $model->updateUser($model);
-//            $user->save();
+            $model->setScenario('login');
             if ($model->validate() && $model->login())
             {
                 $this->redirect(Yii::app()->user->loginUrl);
@@ -28,12 +27,34 @@ class SiteController extends CController
         if(isset($_REQUEST['User']))
         {
             $model->attributes = $_REQUEST['User'];
-            if(User::createUser($model) === true)
+            if($model->createUser() === true)
             {
                 
             }
         }
-        $this->render('register');
+        $this->render('register', array(
+            'model'=>$model,
+        ));
+    }
+    public function actionActivate($code)
+    {
+        $user = User::model()->find('activation_string = :code',array(':code'=>$code));
+        if ($user)
+        {
+            $user->active = 1;
+            $user->activation_string = '';
+            if ($user->save())
+            {
+                if($user->login(true))
+                {
+                     $this->redirect(Yii::app()->user->loginUrl);
+                }
+            }
+        }
+        else
+        {
+            throw new CHttpException(404, 'Page not found');
+        }
     }
     public function actionLogout()
     {

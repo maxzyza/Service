@@ -15,9 +15,10 @@ class User extends CActiveRecord
     public function rules()
     {
         return array(
-            array('email, password', 'required'),
-            array('email,password,activation_string,salt,banned,active','type'),
-            array('email, password', 'safe', 'on' => 'search'),
+            array('email, password', 'required', 'on' => 'login'),
+            array('email, password, name', 'required', 'on' => 'register'),
+            array('email, password, name, surname, activation_string, salt, banned, active, group','type'),
+            array('email, password, name, surname, activation_string, salt, banned, active, group', 'safe', 'on' => 'search'),
         );
     }
     public function relations()
@@ -29,15 +30,33 @@ class User extends CActiveRecord
     public function attributeLabels()
     {
         return array(
+            'id' => 'ID',
             'email' => 'Email',
             'password' => 'Пароль',
+            'name' => 'Имя',
+            'surname' => 'Фамилия',
+            'activation_string' => 'Строка активации',
+            'salt' => 'Соль',
+            'banned' => 'Забанен',
+            'active' => 'Активирован',
+            'group' => 'Группа',
         );
     }
     public function search()
     {
         $criteria = new CDbCriteria;
 
-        $criteria->compare('id', $this->id, true);
+        $criteria->compare('id', $this->id);
+        $criteria->compare('email', $this->email);
+        $criteria->compare('password', $this->password);
+        $criteria->compare('name', $this->name);
+        $criteria->compare('surname', $this->surname);
+        $criteria->compare('activation_string', $this->activation_string);
+        $criteria->compare('salt', $this->salt);
+        $criteria->compare('banned', $this->banned);
+        $criteria->compare('active', $this->active);
+        $criteria->compare('group', $this->group);
+
 
         return new CActiveDataProvider($this,array(
             'criteria' => $criteria,
@@ -115,21 +134,22 @@ class User extends CActiveRecord
         return ($hash == $new_hash);
 
     }
-    public static function createUser(User $user)
+    public function createUser()
     {
-        $create_user = new User();
-        $create_user->username = $user->username;
-        $create_user->email = $user->email;
-        $create_user->salt = $create_user->hashSalt();
-        $create_user->password = $create_user->hashPassword($user->password);
-        $create_user->activation_string = $create_user->hashPassword($create_user->password);
-        return $create_user->save();
+        $user = new User();
+        $user->name = $this->name;
+        $user->email = $this->email;
+        $user->salt = $this->hashSalt();
+        $user->password = $user->hashPassword($this->password);
+        $user->activation_string = $user->hashPassword($user->password);
+        MyDebug::pre($user->attributes);die;
+        return $user->save();
     }
     public static function updateUser(User $user)
     {
         $user->salt = $user->hashSalt($user->email);
-        $user->password = $user->hashPassword($user->password, $user->salt);
-        $user->activation_string = $user->hashPassword($user->password, $user->salt);
+        $user->password = $user->hashPassword($user->password);
+        $user->activation_string = $user->hashPassword($user->password);
         return $user;
     }
 }

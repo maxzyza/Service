@@ -10,6 +10,7 @@ class UserIdentity extends CUserIdentity
         const ERROR_BANNED = 4;
         const ERROR_ACTIVE = 3;
         private $_id;
+        private $_group;
         public function authenticate()
         {
             $username = strtolower($this->username);
@@ -38,6 +39,7 @@ class UserIdentity extends CUserIdentity
                     else
                     {
                         $this->_id = $user->id;
+                        $this->_group = $user->group;
                         $this->errorCode = self::ERROR_NONE;
                     }
                 }
@@ -47,5 +49,9 @@ class UserIdentity extends CUserIdentity
         public function getId()
         {
             return $this->_id;
+        }
+        public function getGroup()
+        {
+            return $this->_group;
         }
 }
