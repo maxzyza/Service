@@ -14,6 +14,7 @@
 
 	<link rel="stylesheet" type="text/css" href="<?php echo Yii::app()->request->baseUrl; ?>/css/main.css" />
 	<link rel="stylesheet" type="text/css" href="<?php echo Yii::app()->request->baseUrl; ?>/css/form.css" />
+        <?php Yii::app()->clientScript->registerScriptFile(Yii::app()->request->baseUrl . "/js/scripts.js"); ?>
 
 	<title><?php echo CHtml::encode($this->pageTitle); ?></title>
 </head>
@@ -25,19 +26,15 @@
 	<div id="header">
 		<div id="logo"><?php echo CHtml::encode(Yii::app()->name); ?></div>
 	</div><!-- header -->
-
-	<div id="mainmenu">
-		<?php $this->widget('zii.widgets.CMenu',array(
-			'items'=>array(
-				array('label'=>'Home', 'url'=>array('/site/index')),
-                                array('label'=>'Registration', 'url'=>array('/site/register')),
-                                array('label'=>'Admin', 'url'=>array('/admin/panel/admin')),
-                                array('label'=>'Paid functional', 'url'=>array('/anything/index')),
-				array('label'=>'Login', 'url'=>array('/site/login'), 'visible'=>Yii::app()->user->isGuest),
-				array('label'=>'Logout ('.Yii::app()->user->name.')', 'url'=>array('/site/logout'), 'visible'=>!Yii::app()->user->isGuest)
-			),
-		)); ?>
-	</div><!-- mainmenu -->
+        <?php $this->widget('bootstrap.widgets.TbNavbar', array(
+        'type' => 'inverse',
+        'brand' => Yii::app()->name,
+        'brandUrl' => array('/site/index'),
+        'collapse' => true,
+        'fixed' => false,
+        'items' => User::getMenu(),
+    )
+);?>
 	<?php if(isset($this->breadcrumbs)):?>
 		<?php $this->widget('zii.widgets.CBreadcrumbs', array(
 			'links'=>$this->breadcrumbs,
@@ -49,9 +46,9 @@
 	<div class="clear"></div>
 
 	<div id="footer">
-		Copyright &copy; <?php echo date('Y'); ?> by My Company.<br/>
+		Copyright &copy; <?php echo date('Y'); ?> ООО "Зимиос".<br/>
 		All Rights Reserved.<br/>
-		<?php echo Yii::powered(); ?>
+		<?php //echo Yii::powered(); ?>
 	</div><!-- footer -->
 
 </div><!-- page -->

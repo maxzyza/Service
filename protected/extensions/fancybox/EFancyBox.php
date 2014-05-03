@@ -37,6 +37,8 @@ class EFancyBox extends CWidget
 	public $id;
 	// @ string the taget element on DOM
 	public $target;
+        
+        public $text;
 	// @ boolean whether to enable the easing functions. You must set the eansing on $config.
 	public $easingEnabled=false;
 	// @ boolean whether to enable mouse interaction
@@ -58,8 +60,12 @@ class EFancyBox extends CWidget
     public function run()
     {
 		$config = CJavaScript::encode($this->config);
-		Yii::app()->clientScript->registerScript($this->getId(), "
-			$('$this->target').fancybox($config);
+//		Yii::app()->clientScript->registerScript($this->getId(), "
+//			$('$this->target').fancybox($config);
+//		");
+                Yii::app()->clientScript->registerScript($this->getId(), "
+			$.fancybox.showActivity({});
+                        $.fancybox('$this->text',{$config});
 		");
 	}
 	

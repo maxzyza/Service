@@ -1,7 +1,7 @@
 <?php
 $config = array(
 	'basePath'=>dirname(__FILE__).DIRECTORY_SEPARATOR.'..',
-	'name'=>'Base Service',
+	'name'=>'Базовый сервис',
 	'preload'=>array('log','bootstrap'),
 	'import'=>array(
 		'application.models.*',
@@ -20,9 +20,20 @@ $config = array(
 	),
 
 	'components'=>array(
+                'robokassa' => array(
+                    'class' => 'application.components.robokassa.Robokassa',
+                    'sMerchantLogin' => 'putevye-listy',
+                    'sMerchantPass1' => 'ghjGoi5d',
+                    'sMerchantPass2' => '9785kjrD',
+                    'sCulture' => 'ru',
+                    'sIncCurrLabel' => '',
+                    'orderModel' => 'Order',
+                    'priceField' => 'amount',
+                    'isTest' => true,
+                ),
 		'user'=>array(
                     'allowAutoLogin'=>true,
-                    'loginUrl'=>'/site/login'
+                    'loginUrl' => '/site/login',
 		),
                 'mail' => array(
                     'class' => 'ext.yii-mail.YiiMail',
@@ -33,6 +44,9 @@ $config = array(
                         'password' => '',
                     ),
                     'logging' => true,
+                ),
+                    'MailSender' => array(
+                    'class'=>'application.components.MailSender'
                 ),
 		'bootstrap'=>array(
                     'class'=>'ext.bootstrap.components.Bootstrap',

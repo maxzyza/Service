@@ -15,7 +15,7 @@ return array(
 			'connectionString' => 'mysql:host=localhost;dbname=service',
 			'emulatePrepare' => true,
 			'username' => 'root',
-			'password' => '33632499',
+			'password' => '',
 			'charset' => 'utf8',
 		),
                 'authManager'=>array(

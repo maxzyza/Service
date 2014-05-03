@@ -17,8 +17,9 @@ class User extends CActiveRecord
         return array(
             array('email, password', 'required', 'on' => 'login'),
             array('email, password, name', 'required', 'on' => 'register'),
-            array('email, password, name, surname, activation_string, salt, banned, active, group','type'),
-            array('email, password, name, surname, activation_string, salt, banned, active, group', 'safe', 'on' => 'search'),
+            array('email, password, name, surname, activation_string, salt', 'type'),
+            array('active, banned','boolean','allowEmpty' => true),
+            array('email, password, name, surname, activation_string, salt, banned, active', 'safe', 'on' => 'search'),
         );
     }
     public function relations()
@@ -39,7 +40,6 @@ class User extends CActiveRecord
             'salt' => 'Соль',
             'banned' => 'Забанен',
             'active' => 'Активирован',
-            'group' => 'Группа',
         );
     }
     public function search()
@@ -55,8 +55,6 @@ class User extends CActiveRecord
         $criteria->compare('salt', $this->salt);
         $criteria->compare('banned', $this->banned);
         $criteria->compare('active', $this->active);
-        $criteria->compare('group', $this->group);
-
 
         return new CActiveDataProvider($this,array(
             'criteria' => $criteria,
@@ -76,18 +74,19 @@ class User extends CActiveRecord
 
         return false;
     }
-    public function login()
+    public function login($doNotValidatePassword = false)
     {
         if ($this->_identity === null)
         {
             $this->_identity = new UserIdentity($this->email, $this->password);
-            $this->_identity->authenticate();
+            $this->_identity->authenticate($doNotValidatePassword);
 
         }
         if ($this->_identity->errorCode === UserIdentity::ERROR_NONE)
         {
-            $duration = 3600 * 24 * 30; // 30 days
+            $duration = 3600 * 24 * 30;
             Yii::app()->user->login($this->_identity, $duration);
+            $this->setAssignedRule();
             return true;
         }
         else
@@ -120,30 +119,42 @@ class User extends CActiveRecord
     }
     public function hashPassword($password) 
     {
-        return crypt($password,
+        $string = crypt($password,
                     $this->algo .
                     $this->cost .
                     '$' . $this->salt);
+        $string = str_replace('/', '#', $string);
+        return $string;
     }
     public function check_password($hash, $password) 
     {
         $full_salt = substr($hash, 0, 29);
 
         $new_hash = crypt($password, $full_salt);
-
+        $new_hash = str_replace('/', '#', $new_hash);
         return ($hash == $new_hash);
 
     }
     public function createUser()
     {
+        $result = false;
         $user = new User();
+        $user->setScenario('register');
         $user->name = $this->name;
         $user->email = $this->email;
         $user->salt = $this->hashSalt();
         $user->password = $user->hashPassword($this->password);
         $user->activation_string = $user->hashPassword($user->password);
-        MyDebug::pre($user->attributes);die;
-        return $user->save();
+        if($user->save())
+        {
+            $group = new Groups();
+            if(($relation_id = $group->CreateDefault($user->id)) !== false)
+            {
+                $user->setRulesByRelation($relation_id);
+            }
+            $result = true;
+        }
+        return $result;
     }
     public static function updateUser(User $user)
     {
@@ -151,5 +162,78 @@ class User extends CActiveRecord
         $user->password = $user->hashPassword($user->password);
         $user->activation_string = $user->hashPassword($user->password);
         return $user;
+    }
+    public function setRulesByRelation($relation_id)
+    {
+        $auth = Yii::app()->authManager;
+        $role = 'admin_group_'.$relation_id;
+        $auth->createRole($role, 'Администратор группы');
+        $auth->assign($role, $this->id);
+    }
+    public function setActive()
+    {
+        $result = false;
+        $this->active = 1;
+        $this->activation_string = '';
+        $this->validate();
+        if($this->save())
+        {
+            $result = true;
+        }
+        return $result;
+    }
+    public function getActiveGroup()
+    {
+        $group_id = false;
+        $relation = RelationGroupUser::model()->findByAttributes(array('user_id' => $this->id, 'active' => 1));
+        if($relation)
+        {
+            $group_id = $relation->group_id;
+        }
+        return $group_id;
+    }
+    public static function getMenu()
+    {
+        $result = array();
+        if(!Yii::app()->user->isGuest)
+        {
+            $result[] = array(
+                'class' => 'bootstrap.widgets.TbMenu',
+                'items' => array(
+                    array('label' => 'Админка', 'url' => array('/admin/panel/admin')),
+                    array('label' => 'Тарифы', 'url' => array('/site/rates')),
+                    array('label' => 'Пользователи группы', 'url' => array('/site/usersGroup'), 'visible' => Groups::isAdminGroup()),
+                    array('label' => 'Платный функционал', 'url' => array('/anything/index')),
+                    array(
+                        'label' => 'Группы',
+                        'url' => '#',
+                        'items' => Groups::getGroupsUser(),
+                    ),
+                ),
+            );
+        }
+        $result[] = array(
+            'class' => 'bootstrap.widgets.TbMenu',
+            'htmlOptions' => array('class' => 'pull-right'),
+            'items' => array(
+                array('label' => 'Регистрация', 'url' => array('/site/register')),
+                array('label' => 'Вход', 'url' => array('/site/login'), 'visible'=>Yii::app()->user->isGuest),
+                array('label' => 'Выход ('.Yii::app()->user->name.')', 'url' => array('/site/logout'), 'visible'=>!Yii::app()->user->isGuest),
+            ),
+        );
+        return $result;
+    }
+    public function setAssignedRule()
+    {
+        $key = Yii::app()->user->getState('key_invite_to_group');
+        if($key)
+        {
+            $invite = InviteUserGroup::model()->findByAttributes(array('key' => $key));
+            if($invite)
+            {
+                Rates::addRulesByUser($invite->group_id, Yii::app()->user->id);
+                $invite->delete();
+            }
+        }
     }
 }

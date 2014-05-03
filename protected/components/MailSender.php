@@ -35,7 +35,7 @@ class MailSender implements IApplicationComponent
     public function sendEmailWithActivationCode(User $user) {
 
         $view = 'registration';
-        $params = array('code'=>$user->activation_string,'name'=>$user->username);
+        $params = array('code'=>$user->activation_string,'name'=>$user->name);
         $to = $user->email;
         $from = $this->getAdminEmail();
         $subject = 'Регистрация на сайте';
@@ -43,10 +43,19 @@ class MailSender implements IApplicationComponent
     }
     public function sendEmailWithRecoveryCode(User $user) {
         $view = 'recovery';
-        $params = array('code'=>$user->activation_string,'name'=>$user->username);
+        $params = array('code'=>$user->activation_string,'name'=>$user->name);
         $to = $user->email;
         $from = $this->getAdminEmail();
         $subject = 'Восстановление пароля на сайте';
+        return  $this->send($view,$to,$from,$subject,$params);
+    }
+    public function sendEmailWithInviteCode(InviteUserGroup $invite)
+    {
+        $view = 'invite';
+        $params = array('key'=>$invite->key);
+        $to = $invite->email;
+        $from = $this->getAdminEmail();
+        $subject = 'Преглошение в группу';
         return  $this->send($view,$to,$from,$subject,$params);
     }
     public function send($view,$to,$from,$subject,array $params = array()){

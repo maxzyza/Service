@@ -1,5 +1,5 @@
 <?php
-class PanelController extends CController
+class PaidController extends CController
 {
     public $layout = '//layouts/column1';
     public function filters() {
@@ -7,19 +7,18 @@ class PanelController extends CController
                 'accessControl',
                 );
     }
-
     public function accessRules() {
         return array(
             array('allow',
-                'roles'=>array('admin'),
+                    'users'=>array('@'),
                 ),
             array('deny',
-                'users'=>array('*'),
+                    'users'=>array('*'),
                 ),
                 );
     }
-    public function actionAdmin()
+    public function actionAccess()
     {
-        $this->render('admin');
+        $this->render('access');
     }
 }

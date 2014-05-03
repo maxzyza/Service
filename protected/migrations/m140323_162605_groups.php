@@ -6,7 +6,7 @@ class m140323_162605_groups extends CDbMigration
 	{
             $this->createTable('groups', array(
                 'id' => 'pk',
-                
+                'name' => 'string',
             ));
 	}
 

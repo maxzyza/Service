@@ -39,9 +39,6 @@ class m140312_195306_auth extends CDbMigration
                 ) engine InnoDB;")->query();
             $auth = Yii::app()->authManager;
             $auth->createRole('admin', 'Администратор');
-            $auth->createRole('admin_group', 'Администратор группы');
-            $auth->createRole('user_group', 'Пользователь группы');
-            $auth->createRole('prepaid_rate', 'Оплаченный тариф');
             $auth->assign('admin','1');
 	}
 
