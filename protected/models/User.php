@@ -236,4 +236,23 @@ class User extends CActiveRecord
             }
         }
     }
+    public function getPayRate($group_id)
+    {
+        $result = false;
+        $pay_rate_id = Yii::app()->db->createCommand()
+                ->select('rate_id')
+                ->from('orders o')
+                ->join('rates r', 'r.id = o.rate_id')
+                ->where(array('AND', "o.user_id = '{$this->id}'", "o.group_id = '{$group_id}'", "CURDATE() BETWEEN o.date_pay AND DATE_ADD(o.date_pay, INTERVAL r.month MONTH)"))
+                ->queryScalar();
+        if($pay_rate_id)
+        {
+            $rate = Rates::model()->findByPk($pay_rate_id);
+            if($rate)
+            {
+                $result = $rate;
+            }
+        }
+        return $result;
+    }
 }

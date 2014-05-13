@@ -8,6 +8,7 @@ class m140417_071257_rates extends CDbMigration
                 'id' => 'pk',
                 'name' => 'string',
                 'price' => 'integer',
+                'month' => 'integer',
                 'name_program' => 'string',
             ));
 	}

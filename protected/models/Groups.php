@@ -109,4 +109,36 @@ class Groups extends CActiveRecord
         }
         return $result;
     }
+    public function getUsersGroup()
+    {
+        $result = false;
+        $users_id = Yii::app()->db->createCommand()
+                ->select('user_id')
+                ->from('relation_group_user')
+                ->where("group_id = '{$this->id}'")
+                ->queryColumn();
+        if($users_id)
+        {
+            $result = $users_id;
+        }
+        return $result;
+    }
+    public function getAdmin()
+    {
+        $result = false;
+        $user_id = Yii::app()->db->createCommand()
+                ->select('user_id')
+                ->from('relation_group_user')
+                ->where(array('AND', "group_id = '{$this->id}'", "type = 'admin'"))
+                ->queryScalar();
+        if($user_id)
+        {
+            $user = User::model()->findByPk($user_id);
+            if($user)
+            {
+                $result = $user;
+            }
+        }
+        return $result;
+    }
 }

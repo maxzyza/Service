@@ -98,18 +98,57 @@ class Rates extends CActiveRecord
     }
     public static function setRulesByGroup($group_id, $rate_id)
     {
-        $order = new Orders();
+        //найти пользователей группы
+        //проставить права согласно тарифу
         $auth = Yii::app()->authManager;
-        $auth->createRole($rule, $this->name.'_'.$order->user_id);
-        $auth->getRoles();
-        if (!$auth->isAssigned($rule, $order->user_id)) 
+        $group = Groups::model()->findByPk($group_id);
+        $rate = Rates::model()->findByPk($rate_id);
+        if($group && $rate)
         {
-            $auth->assign($rule, $order->user_id);
+            $roles = $auth->getRoles();
+            $rule = $rate->name_program.'_'.$group->id;
+            if(!array_key_exists($rule, $roles))
+            {
+                $auth->createRole($rule, $rate->name.'_'.$group->id);
+            }
+            $users = $group->getUsersGroup();
+            if($users !== false)
+            {
+                foreach($users as $user_id)
+                {
+                    if(!$auth->isAssigned($rule, $user_id)) 
+                    {
+                        $auth->assign($rule, $user_id);
+                    }
+                }
+            }
         }
     }
     public static function addRulesByUser($group_id, $user_id)
     {
-        
+        //поиск админа группы
+        //проверка какой у админа оплаченный тариф
+        //проставить права согласно тарифу
+        $group = Groups::model()->findByPk($group_id);
+        $admin = $group->getAdmin();
+        if($admin)
+        {
+            $rate = $admin->getPayRate($group_id);
+            if($rate !== false)
+            {
+                $auth = Yii::app()->authManager;
+                $roles = $auth->getRoles();
+                $rule = $rate->name_program.'_'.$group_id;
+                if(!array_key_exists($rule, $roles))
+                {
+                    $auth->createRole($rule, $rate->name.'_'.$group_id);
+                }
+                if(!$auth->isAssigned($rule, $user_id)) 
+                {
+                    $auth->assign($rule, $user_id);
+                }
+            }
+        }
     }
     public static function deleteRules($group_id, $rate_id)
     {
