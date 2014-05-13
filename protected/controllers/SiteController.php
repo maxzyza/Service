@@ -4,8 +4,6 @@ class SiteController extends CController
     public $layout = '//layouts/column1';
     public function actionIndex()
     {
-        $rate = new Rates();
-        $rate->setRulesByGroup(1,1);die;
         $this->render('index');
     }
     public function actionLogin()

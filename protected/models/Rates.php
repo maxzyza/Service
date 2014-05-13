@@ -67,13 +67,13 @@ class Rates extends CActiveRecord
     }
     public function CheckAccess($CInlineAction)
     {
-        $result = true;
+        $result = false;
         if(($name_program = $this->getRateNameProgram($CInlineAction)) !== false)
         {
             $access = $name_program.'_'.Yii::app()->user->active_group;
             if(Yii::app()->user->checkAccess($access))
             {
-                $result = false;
+                $result = true;
             }
         }
         return $result;
@@ -83,16 +83,20 @@ class Rates extends CActiveRecord
         $result = false;
         $controller = $CInlineAction->getController()->getId().'controller';
         $action = $CInlineAction->getId();
-        $name_program = Yii::app()->db->createCommand()
-                ->select('r.name_program')
+        $rate_data = Yii::app()->db->createCommand()
+                ->select('r.id, r.name_program')
                 ->from('rates r')
                 ->join('relation_controllers_actions_rates rcar', 'r.id = rcar.rate_id')
                 ->join('controllers_actions ca', 'rcar.controller_action_id = ca.id')
                 ->where(array('AND', "ca.controller = '{$controller}'", "ca.action = '{$action}'"))
-                ->queryScalar();
-        if($name_program)
+                ->queryRow();
+        if($rate_data)
         {
-            $result = $name_program;
+            $rate = Rates::model()->findByPk($rate_data['id']);
+            if($rate && $rate->CheckPaid())
+            {
+                $result = $rate_data['name_program'];
+            }
         }
         return $result;
     }
@@ -152,9 +156,43 @@ class Rates extends CActiveRecord
     }
     public static function deleteRules($group_id, $rate_id)
     {
-//        $rate = Rates::model()->findByPk($this->rate_id);
-//        $rule = $rate->name_program.''.$this->group_id;
-//        $auth = Yii::app()->authManager;
-//        $auth->revoke($rule, $this->user_id);
+        $auth = Yii::app()->authManager;
+        $users_id = Yii::app()->db->createCommand()
+                ->select('id')
+                ->from('users')
+                ->queryColumn();
+        $rate = Rates::model()->findByPk($rate_id);
+        if($users_id && $rate)
+        {
+            $rule = $rate->name_program.'_'.$group_id;
+            foreach($users_id as $user_id)
+            {
+                $auth->revoke($rule, $user_id);
+            }
+        }
+    }
+    public function CheckPaid()
+    {
+        $result = false;
+        $group_id = Yii::app()->user->active_group;
+        $user_id = Yii::app()->user->id;
+        if($group_id)
+        {
+            $pay_rate_id = Yii::app()->db->createCommand()
+                ->select('rate_id')
+                ->from('orders o')
+                ->join('rates r', 'r.id = o.rate_id')
+                ->where(array('AND', "o.user_id = '{$user_id}'", "o.rate_id = '{$this->rate_id}'", "o.group_id = '{$group_id}'", "CURDATE() BETWEEN o.date_pay AND DATE_ADD(o.date_pay, INTERVAL r.month MONTH)"))
+                ->queryScalar();
+            if($pay_rate_id)
+            {
+                $result = true;
+            }
+            else
+            {
+                Rates::deleteRules($group_id, $this->id);
+            }
+        }
+        return $result;
     }
 }

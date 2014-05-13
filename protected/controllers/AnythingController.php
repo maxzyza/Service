@@ -20,7 +20,7 @@ class AnythingController extends CController
     protected function beforeAction($action)
     {
         $rates = new Rates();
-        if($rates->CheckAccess($action))
+        if($rates->CheckAccess($action) === false)
         {
             $this->redirect(array('/paid/access'));
         }
